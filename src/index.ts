@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import express, { Express, Request, Response } from "express";
 import mongoose from "mongoose";
 import authRouter from "./routes/auth.routes.js";
+import recipeRouter from "./routes/recipe.routes.js";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/recipes", recipeRouter);
 
 // Connect to MongoDB
 mongoose

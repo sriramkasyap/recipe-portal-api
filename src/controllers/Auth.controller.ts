@@ -5,15 +5,18 @@ import UserModel, { UserType } from "../models/User.model.js";
 import { CredentialResponse } from "../types/Auth.types.js";
 
 class AuthController {
-  getUser = async (userId: string): Promise<UserType | null> => {
+  static getUser = async (userId: string): Promise<UserType | null> => {
     return UserModel.findById(userId);
   };
 
-  createUser = async (name: string, email: string): Promise<UserType> => {
+  static createUser = async (
+    name: string,
+    email: string
+  ): Promise<UserType> => {
     return UserModel.create({ name, email });
   };
 
-  getOrCreateUser = async (
+  static getOrCreateUser = async (
     name: string,
     email: string
   ): Promise<{
@@ -22,17 +25,17 @@ class AuthController {
   }> => {
     const user = await UserModel.findOne({ email });
     if (user) return { user, newUser: false };
-    const newUser = await this.createUser(name, email);
+    const newUser = await AuthController.createUser(name, email);
     return { user: newUser, newUser: true };
   };
 
-  private generateAuthToken = (userId: string): string => {
+  private static generateAuthToken = (userId: string): string => {
     const token = jwt.sign({ userId }, process.env.JWT_SECRET || "");
     return token;
   };
 
-  setAuthCookie = (res: Response, userId: string): Response => {
-    const token = this.generateAuthToken(userId);
+  static setAuthCookie = (res: Response, userId: string): Response => {
+    const token = AuthController.generateAuthToken(userId);
 
     res.cookie("accessToken", token, {
       httpOnly: true,
@@ -44,7 +47,7 @@ class AuthController {
     return res;
   };
 
-  getUserDataFromGoogle = async (
+  static getUserDataFromGoogle = async (
     credential: CredentialResponse["credential"]
   ): Promise<{
     name: string | undefined;
