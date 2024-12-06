@@ -16,7 +16,9 @@ mealRouter.get("/", async (req: Request, res: Response) => {
   }
 
   const mealController = new MealController();
-  let { mealPlan, groceryList } = await mealController.init(userId);
+  await mealController.init(userId);
+  const mealPlan = await mealController.getMealPlan();
+  const groceryList = await mealController.getGroceryList();
 
   res.status(200).json({ success: true, mealPlan, groceryList });
 });

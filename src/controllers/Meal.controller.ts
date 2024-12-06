@@ -15,14 +15,8 @@ export default class MealController {
     let mealPlan = await MealPlanModel.findOne({
       user: userId,
       active: true,
-    }).populate("recipes");
-    if (!mealPlan) {
-      mealPlan = await MealPlanModel.create({
-        user: userId,
-        active: true,
-        recipes: [],
-      });
-    }
+    });
+
     this.mealPlan = mealPlan;
     await this.generateGroceryList();
 
@@ -35,11 +29,13 @@ export default class MealController {
       throw new Error("Meal plan not found");
     }
 
-    this.mealPlan.recipes.push(recipe);
+    if (!this.mealPlan.recipes.includes(recipe)) {
+      this.mealPlan.recipes.push(recipe);
 
-    await this.mealPlan.save();
+      await this.mealPlan.save();
 
-    await this.generateGroceryList();
+      await this.generateGroceryList();
+    }
 
     return {
       mealPlan: this.mealPlan,
@@ -73,7 +69,9 @@ export default class MealController {
       throw new Error("Meal plan not found");
     }
 
-    return this.mealPlan;
+    const mealPlan = await this.mealPlan.populate("recipes");
+
+    return mealPlan;
   };
 
   // Get Grocery List
