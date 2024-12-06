@@ -84,8 +84,9 @@ export default class MealController {
       for (const ingredient of recipe.ingredients.values()) {
         let ingredientSlug = slugify(ingredient.name);
         if (groceryList[ingredientSlug]) {
-          if (ingredient.quantity)
-            groceryList[ingredientSlug].quantity += ingredient.quantity;
+          groceryList[ingredientSlug].quantity =
+            (groceryList[ingredientSlug].quantity || 0) +
+            (ingredient.quantity || 0);
         } else {
           groceryList[ingredientSlug] = {
             ...ingredient,

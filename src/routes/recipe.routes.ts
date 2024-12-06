@@ -1,5 +1,7 @@
 import { Request, Response, Router } from "express";
 import RecipeController from "../controllers/Recipe.controller.js";
+import RecipeModel, { RecipeType } from "../models/Recipe.model.js";
+import { capitalize, slugify } from "../utils/common.js";
 
 const recipeRouter = Router();
 
@@ -32,8 +34,24 @@ recipeRouter.get("/:id", async (req: Request, res: Response) => {
 recipeRouter.post("/generate", async (req: Request, res: Response) => {
   try {
     const { title } = req.body;
-    const ingredients = await RecipeController.generateIngredientsList(title);
-    res.json({ success: true, ingredients });
+    const { ingredients } = await RecipeController.generateIngredientsList(
+      title
+    );
+    console.log(JSON.stringify(ingredients, null, 2));
+
+    const recipe = await RecipeModel.create({
+      title,
+      ingredients: ingredients.reduce((acc: any, ingredient: any) => {
+        acc[slugify(ingredient.name)] = {
+          name: capitalize(ingredient.name),
+          quantity: ingredient.quantity,
+          units: ingredient.units,
+        };
+        return acc;
+      }, {} as RecipeType["ingredients"]),
+    });
+
+    res.json({ success: true, recipe });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: error });
