@@ -15,10 +15,10 @@ const userSchema = new Schema({
   },
 });
 
-export type UserType = InferSchemaType<typeof userSchema>;
+export type UserType = InferSchemaType<typeof userSchema> & Document;
 
 const UserModel =
-  (mongoose.models.User as Model<UserType & Document>) ||
-  model<UserType & Document>("User", userSchema);
+  (mongoose.models.User as Model<UserType>) ||
+  model<UserType>("User", userSchema);
 
 export default UserModel;

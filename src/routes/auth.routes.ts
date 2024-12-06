@@ -1,56 +1,22 @@
 import { Request, Response, Router } from "express";
-import { OAuth2Client } from "google-auth-library";
-import jwt from "jsonwebtoken";
+import AuthController from "../controllers/Auth.controller.js";
 import verifyToken from "../middleware/auth.middleware.js";
 import UserModel from "../models/User.model.js";
 const authRouter = Router();
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Login / Register
 authRouter.post("/login", async (req: Request, res: Response) => {
   const { credential } = req.body;
 
-  const ticket = await client.verifyIdToken({
-    idToken: credential,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
-
-  const payload = ticket.getPayload();
-
-  const { name, email, email_verified } = payload || {};
+  const { name, email, email_verified } =
+    await AuthController.getUserDataFromGoogle(credential);
 
   if (name && email && email_verified) {
-    const user = await UserModel.findOne({ email });
+    const { user, newUser } = await AuthController.getOrCreateUser(name, email);
 
-    if (user) {
-      const token = jwt.sign(
-        { userId: user._id },
-        process.env.JWT_SECRET || ""
-      );
-      res.cookie("accessToken", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV !== "development",
-        maxAge: 1000 * 60 * 60 * 24 * 30,
-        sameSite: "strict",
-      });
-      res.json({ user, newUser: false });
-    } else {
-      const newUser = await UserModel.create({ name, email });
+    res = AuthController.setAuthCookie(res, (user._id as string).toString());
 
-      const token = jwt.sign(
-        { userId: newUser._id },
-        process.env.JWT_SECRET || ""
-      );
-
-      res.cookie("accessToken", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV !== "development",
-        maxAge: 1000 * 60 * 60 * 24 * 30,
-        sameSite: "strict",
-      });
-
-      res.json({ user: newUser, newUser: true });
-    }
+    res.json({ user, newUser });
   } else {
     res.status(401).json({ message: "Unauthorized" });
   }

@@ -12,7 +12,15 @@ const port = process.env.PORT || 4000;
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(
+  cors({
+    origin(requestOrigin, callback) {
+      callback(null, true);
+    },
+    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    optionsSuccessStatus: 200, // Add this to avoid CORS errors
+  })
+);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Viva Recipes API is running!");
