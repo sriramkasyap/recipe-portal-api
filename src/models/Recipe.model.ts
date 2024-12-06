@@ -1,4 +1,4 @@
-import mongoose, { Document, InferSchemaType, model } from "mongoose";
+import mongoose, { Document, InferSchemaType, Model, model } from "mongoose";
 import UserModel from "./User.model.js";
 
 const recipeSchema = new mongoose.Schema(
@@ -26,6 +26,7 @@ const recipeSchema = new mongoose.Schema(
 export type RecipeType = InferSchemaType<typeof recipeSchema> & Document;
 
 const RecipeModel =
-  mongoose.models.Recipe || model<RecipeType>("Recipe", recipeSchema);
+  (mongoose.models.Recipe as Model<RecipeType>) ||
+  model<RecipeType>("Recipe", recipeSchema);
 
 export default RecipeModel;

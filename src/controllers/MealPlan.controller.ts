@@ -81,15 +81,26 @@ export default class MealController {
     let groceryList: GroceryList = {};
 
     for (const recipe of recipes) {
-      for (const ingredient of recipe.ingredients.values()) {
-        let ingredientSlug = slugify(ingredient.name);
+      let ingredients = recipe.ingredients?.values();
+
+      if (!ingredients) {
+        continue;
+      }
+
+      for (const ingredient of ingredients) {
+        let ingredientSlug = slugify(ingredient.name || "");
+
         if (groceryList[ingredientSlug]) {
-          groceryList[ingredientSlug].quantity =
-            (groceryList[ingredientSlug].quantity || 0) +
-            (ingredient.quantity || 0);
+          if (groceryList[ingredientSlug].quantity || ingredient.quantity) {
+            groceryList[ingredientSlug].quantity =
+              (groceryList[ingredientSlug].quantity || 0) +
+              (ingredient.quantity || 0);
+          }
         } else {
           groceryList[ingredientSlug] = {
-            ...ingredient,
+            name: ingredient.name,
+            quantity: ingredient.quantity,
+            units: ingredient.units,
             checked: false,
           };
         }

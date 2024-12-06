@@ -28,7 +28,7 @@ export default class RecipeController {
   //   Generate Recipe from title
   static generateIngredientsList = async (title: string) => {
     const system_prompt = "You generate ingredient lists for recipes";
-    const user_prompt = `Generate an ingredient list for a recipe with the title: ${title}`;
+    const user_prompt = `Generate an ingredient list for a recipe with the title: ${title}. Use 'lb' for weight, 'tbsp' for tablespoons, 'cup' for cups. do not add units for pieces.`;
 
     const response = await GPTController.generateDataFromPrompt(
       system_prompt,

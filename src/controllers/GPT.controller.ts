@@ -14,8 +14,6 @@ export default class GPTController {
     user_prompt: string,
     schema: ResponseFormatJSONSchema["json_schema"]
   ): Promise<any | null> => {
-    console.log({ system_prompt, user_prompt, schema });
-
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [

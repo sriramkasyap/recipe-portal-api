@@ -37,7 +37,6 @@ recipeRouter.post("/generate", async (req: Request, res: Response) => {
     const { ingredients } = await RecipeController.generateIngredientsList(
       title
     );
-    console.log(JSON.stringify(ingredients, null, 2));
 
     const recipe = await RecipeModel.create({
       title,

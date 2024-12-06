@@ -1,7 +1,7 @@
 export type GroceryItem = {
-  name: string;
-  quantity: number;
-  units: string;
+  name?: string | null;
+  quantity?: number | null;
+  units?: string | null;
   checked: boolean;
 };
 
