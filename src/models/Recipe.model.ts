@@ -1,33 +1,31 @@
-import mongoose, { InferSchemaType, model, models } from "mongoose";
+import mongoose, { Document, InferSchemaType, model } from "mongoose";
 import UserModel from "./User.model.js";
 
-const recipeSchema = new mongoose.Schema({
-  name: String,
-  ingredients: {
-    type: Map,
-    of: {
-      quantity: Number,
-      units: String,
+const recipeSchema = new mongoose.Schema(
+  {
+    title: String,
+    ingredients: {
+      type: Map,
+      of: {
+        name: String,
+        quantity: { type: Number, required: false },
+        units: { type: String, required: false },
+      },
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: UserModel,
     },
   },
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-  },
+  {
+    timestamps: true,
+  }
+);
 
-  updatedAt: {
-    type: Date,
-    default: Date.now(),
-  },
+export type RecipeType = InferSchemaType<typeof recipeSchema> & Document;
 
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: UserModel,
-  },
-});
-
-export type RecipeType = InferSchemaType<typeof recipeSchema>;
-
-const RecipeModel = models.Recipe || model<RecipeType>("Recipe", recipeSchema);
+const RecipeModel =
+  mongoose.models.Recipe || model<RecipeType>("Recipe", recipeSchema);
 
 export default RecipeModel;
