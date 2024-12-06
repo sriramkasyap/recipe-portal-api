@@ -1,17 +1,13 @@
 import mongoose, { HydratedDocument } from "mongoose";
 import MealPlanModel, { MealPlanType } from "../models/MealPlan.model.js";
 import RecipeModel from "../models/Recipe.model.js";
-import { GroceryList } from "../types/Meal.types.js";
+import { GroceryItem } from "../types/Meal.types.js";
 import { slugify } from "../utils/common.js";
 
 export default class MealController {
   private mealPlan: HydratedDocument<MealPlanType> | undefined;
 
-  private groceryList: GroceryList | undefined;
-
-  async init(
-    userId: string | mongoose.Types.ObjectId
-  ): Promise<{ mealPlan: MealPlanType; groceryList: GroceryList }> {
+  async init(userId: string | mongoose.Types.ObjectId): Promise<MealPlanType> {
     let mealPlan = await MealPlanModel.findOne({
       user: userId,
       active: true,
@@ -20,7 +16,7 @@ export default class MealController {
     this.mealPlan = mealPlan;
     await this.generateGroceryList();
 
-    return { mealPlan, groceryList: this.groceryList as GroceryList };
+    return mealPlan;
   }
 
   // Add recipe to meal plan
@@ -31,16 +27,11 @@ export default class MealController {
 
     if (!this.mealPlan.recipes.includes(recipe)) {
       this.mealPlan.recipes.push(recipe);
-
       await this.mealPlan.save();
-
       await this.generateGroceryList();
     }
 
-    return {
-      mealPlan: this.mealPlan,
-      groceryList: this.groceryList as GroceryList,
-    };
+    return this.mealPlan;
   };
 
   // Remove recipe from meal plan
@@ -57,10 +48,7 @@ export default class MealController {
 
     await this.generateGroceryList();
 
-    return {
-      mealPlan: this.mealPlan,
-      groceryList: this.groceryList as GroceryList,
-    };
+    return this.mealPlan;
   };
 
   // Get meal plan
@@ -74,42 +62,32 @@ export default class MealController {
     return mealPlan;
   };
 
-  // Get Grocery List
-  getGroceryList = async () => {
-    if (!this.mealPlan) {
-      throw new Error("Meal plan not found");
-    }
-    if (!this.groceryList) {
-      throw new Error("Grocery list not found");
-    }
-    return this.groceryList;
-  };
-
   // Generate Grocery List
   private generateGroceryList = async () => {
     if (!this.mealPlan) {
       throw new Error("Meal plan not found");
     }
-    this.groceryList = {};
 
     const recipes = await RecipeModel.find({
       _id: { $in: this.mealPlan.recipes },
     });
 
+    let groceryList = new Map<string, GroceryItem>();
+
     for (const recipe of recipes) {
       for (const ingredient of recipe.ingredients.values()) {
         let ingredientSlug = slugify(ingredient.name);
-        if (this.groceryList[ingredientSlug]) {
-          this.groceryList[ingredientSlug].quantity += ingredient.quantity;
+        if (groceryList.has(ingredientSlug)) {
+          if (ingredient.quantity)
+            groceryList.get(ingredientSlug)!.quantity += ingredient.quantity;
         } else {
-          this.groceryList[ingredientSlug] = {
-            name: ingredient.name,
-            quantity: ingredient.quantity,
-            units: ingredient.units,
-          };
+          groceryList.set(ingredientSlug, ingredient);
         }
       }
     }
+
+    this.mealPlan.groceryList = groceryList;
+    await this.mealPlan.save();
   };
 
   // Clear Meal Plan
@@ -118,13 +96,10 @@ export default class MealController {
       throw new Error("Meal plan not found");
     }
     this.mealPlan.recipes = [];
+    this.mealPlan.groceryList = new Map();
     await this.mealPlan.save();
-    this.groceryList = {};
 
-    return {
-      mealPlan: this.mealPlan,
-      groceryList: this.groceryList as GroceryList,
-    };
+    return this.mealPlan;
   };
 
   // Toggle Meal Plan
@@ -137,9 +112,27 @@ export default class MealController {
 
     await this.generateGroceryList();
 
-    return {
-      mealPlan: this.mealPlan,
-      groceryList: this.groceryList as GroceryList,
-    };
+    return this.mealPlan;
+  };
+
+  toggleGroceryItem = async (ingredientSlug: string, checked: boolean) => {
+    if (!this.mealPlan || !this.mealPlan.groceryList) {
+      throw new Error("Meal plan not found");
+    }
+    console.log({ ingredientSlug, checked });
+
+    if (this.mealPlan.groceryList.has(ingredientSlug)) {
+      this.mealPlan.groceryList.set(ingredientSlug, {
+        ...this.mealPlan.groceryList.get(ingredientSlug),
+        checked,
+      });
+
+      this.mealPlan.markModified("groceryList");
+    }
+
+    // Save the changes to the database
+    await this.mealPlan.save();
+
+    return this.mealPlan;
   };
 }
