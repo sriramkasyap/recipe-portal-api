@@ -8,8 +8,11 @@ export default class RecipeController {
   // List Recipes
   static listRecipes = async (filter: {
     title?: string;
+    limit?: number;
   }): Promise<RecipeType[]> => {
-    return RecipeModel.find(filter);
+    return RecipeModel.find({
+      title: { $regex: filter.title, $options: "i" },
+    }).limit(filter.limit || 5);
   };
 
   // Get Recipe by ID

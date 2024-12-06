@@ -5,10 +5,11 @@ const recipeRouter = Router();
 
 recipeRouter.get("/", async (req: Request, res: Response) => {
   try {
-    const { title } = req.query;
+    const { title, limit } = req.query;
 
     const recipes = await RecipeController.listRecipes({
       ...(title && { title: title as string }),
+      ...(limit && { limit: parseInt(limit as string) }),
     });
     res.json({ success: true, recipes });
   } catch (error) {
