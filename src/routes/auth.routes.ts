@@ -7,7 +7,6 @@ const authRouter = Router();
 // Login / Register
 authRouter.post("/login", async (req: Request, res: Response) => {
   const { credential } = req.body;
-
   const { name, email, email_verified } =
     await AuthController.getUserDataFromGoogle(credential);
 
