@@ -44,7 +44,7 @@ export default class RecipeController {
                 type: "object",
                 properties: {
                   name: { type: "string" },
-                  quantity: { type: "string" },
+                  quantity: { type: "number" },
                   unit: { type: "string" },
                 },
                 required: ["name"],

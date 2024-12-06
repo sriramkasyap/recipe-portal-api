@@ -36,8 +36,8 @@ mongoose
 
       ingredientMap.set(ingredientSlug, {
         name: grocery["Ingredients"],
-        ...(grocery["Quantity"] && !isNaN(parseInt(grocery["Quantity"]))
-          ? { quantity: parseInt(grocery["Quantity"]) }
+        ...(grocery["Quantity"] && !isNaN(parseFloat(grocery["Quantity"]))
+          ? { quantity: parseFloat(grocery["Quantity"]) }
           : {}),
         ...(grocery["Unit of Measure"]
           ? { units: grocery["Unit of Measure"] }
