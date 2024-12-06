@@ -1,7 +1,7 @@
 import mongoose, { HydratedDocument } from "mongoose";
 import MealPlanModel, { MealPlanType } from "../models/MealPlan.model.js";
 import RecipeModel from "../models/Recipe.model.js";
-import { GroceryItem } from "../types/Meal.types.js";
+import { GroceryList } from "../types/Meal.types.js";
 import { slugify } from "../utils/common.js";
 
 export default class MealController {
@@ -13,8 +13,14 @@ export default class MealController {
       active: true,
     });
 
+    if (!mealPlan) {
+      mealPlan = await MealPlanModel.create({
+        user: userId,
+        active: true,
+      });
+    }
+
     this.mealPlan = mealPlan;
-    await this.generateGroceryList();
 
     return mealPlan;
   }
@@ -72,16 +78,19 @@ export default class MealController {
       _id: { $in: this.mealPlan.recipes },
     });
 
-    let groceryList = new Map<string, GroceryItem>();
+    let groceryList: GroceryList = {};
 
     for (const recipe of recipes) {
       for (const ingredient of recipe.ingredients.values()) {
         let ingredientSlug = slugify(ingredient.name);
-        if (groceryList.has(ingredientSlug)) {
+        if (groceryList[ingredientSlug]) {
           if (ingredient.quantity)
-            groceryList.get(ingredientSlug)!.quantity += ingredient.quantity;
+            groceryList[ingredientSlug].quantity += ingredient.quantity;
         } else {
-          groceryList.set(ingredientSlug, ingredient);
+          groceryList[ingredientSlug] = {
+            ...ingredient,
+            checked: false,
+          };
         }
       }
     }
@@ -121,17 +130,12 @@ export default class MealController {
     }
     console.log({ ingredientSlug, checked });
 
-    if (this.mealPlan.groceryList.has(ingredientSlug)) {
-      this.mealPlan.groceryList.set(ingredientSlug, {
-        ...this.mealPlan.groceryList.get(ingredientSlug),
-        checked,
-      });
+    let result = await MealPlanModel.updateOne(
+      { _id: this.mealPlan._id },
+      { $set: { [`groceryList.${ingredientSlug}.checked`]: checked } }
+    );
 
-      this.mealPlan.markModified("groceryList");
-    }
-
-    // Save the changes to the database
-    await this.mealPlan.save();
+    console.log(JSON.stringify(result, null, 2));
 
     return this.mealPlan;
   };

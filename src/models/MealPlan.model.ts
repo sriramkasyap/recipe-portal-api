@@ -8,13 +8,8 @@ const MealPlanSchema = new Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: UserModel },
     active: { type: Boolean, default: false },
     groceryList: {
-      type: Map,
-      of: {
-        name: { type: String },
-        quantity: { type: Number },
-        units: { type: String },
-        checked: { type: Boolean, default: false },
-      },
+      type: Object,
+      default: {},
     },
   },
   { timestamps: true }
