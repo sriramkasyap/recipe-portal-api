@@ -52,4 +52,9 @@ authRouter.post("/logout", (req: Request, res: Response) => {
   res.json({ message: "Logged out" });
 });
 
+// Heartbeat
+authRouter.get("/heartbeat", (req: Request, res: Response) => {
+  res.json({ message: "Heartbeat" });
+});
+
 export default authRouter;
