@@ -1,14 +1,18 @@
 import { parse } from "csv-parse/sync";
+import dotenv from "dotenv";
 import fs from "fs";
 import mongoose from "mongoose";
 import RecipeModel, { RecipeType } from "./models/Recipe.model.js";
 import { slugify } from "./utils/common.js";
+
+dotenv.config();
 
 const parseGroceries = async (filePath: string) => {
   const file = fs.readFileSync(filePath, "utf8");
   const records = parse(file, { columns: true });
   return records;
 };
+console.log({ MONGODB_URI: process.env.MONGODB_URI });
 
 mongoose
   .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/viva-recipes")
