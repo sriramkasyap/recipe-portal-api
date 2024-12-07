@@ -140,14 +140,11 @@ export default class MealController {
     if (!this.mealPlan || !this.mealPlan.groceryList) {
       throw new Error("Meal plan not found");
     }
-    console.log({ ingredientSlug, checked });
 
     let result = await MealPlanModel.updateOne(
       { _id: this.mealPlan._id },
       { $set: { [`groceryList.${ingredientSlug}.checked`]: checked } }
     );
-
-    console.log(JSON.stringify(result, null, 2));
 
     return this.mealPlan;
   };
