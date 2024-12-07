@@ -44,7 +44,11 @@ authRouter.get("/me", async (req: Request, res: Response) => {
 
 // Logout
 authRouter.post("/logout", (req: Request, res: Response) => {
-  res.clearCookie("accessToken");
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
   res.json({ message: "Logged out" });
 });
 
