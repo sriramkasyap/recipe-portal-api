@@ -29,7 +29,7 @@ export default class RecipeController {
   static generateIngredientsList = async (title: string) => {
     const system_prompt =
       "You generate ingredient lists for recipes. Use only lb, tbsp, or cup for units. Do not add units for pieces like eggs, potatoes, etc. No need to mention quantity for spices or herbs.";
-    const user_prompt = `Generate an ingredient list for a recipe with the title: ${title}. `;
+    const user_prompt = `Generate an ingredient list for a recipe with the title: ${title}. Limit ingredient names to 15 characters.`;
 
     const response = await GPTController.generateDataFromPrompt(
       system_prompt,
