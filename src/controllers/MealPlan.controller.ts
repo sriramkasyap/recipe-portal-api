@@ -1,8 +1,8 @@
 import mongoose, { HydratedDocument } from "mongoose";
+import IngredientModel from "../models/Ingredient.model.js";
 import MealPlanModel, { MealPlanType } from "../models/MealPlan.model.js";
 import RecipeModel from "../models/Recipe.model.js";
 import { GroceryList } from "../types/Meal.types.js";
-import { slugify } from "../utils/common.js";
 
 export default class MealController {
   private mealPlan: HydratedDocument<MealPlanType> | undefined;
@@ -78,29 +78,36 @@ export default class MealController {
       _id: { $in: this.mealPlan.recipes },
     });
 
+    let masterIngredients = await IngredientModel.find({});
+    const groceryMap = masterIngredients.reduce((agg, ing) => {
+      agg[ing.slug] = ing.groceryListName;
+
+      return agg;
+    }, {} as Record<string, string>);
+
     let groceryList: GroceryList = {};
 
     for (const recipe of recipes) {
-      let ingredients = recipe.ingredients?.values();
+      let ingredients = recipe.ingredients?.keys();
 
       if (!ingredients) {
         continue;
       }
 
-      for (const ingredient of ingredients) {
-        let ingredientSlug = slugify(ingredient.name || "");
+      for (let ingredientSlug of ingredients) {
+        const ingredient = recipe.ingredients?.get(ingredientSlug);
 
         if (groceryList[ingredientSlug]) {
-          if (groceryList[ingredientSlug].quantity || ingredient.quantity) {
+          if (groceryList[ingredientSlug].quantity || ingredient?.quantity) {
             groceryList[ingredientSlug].quantity =
               (groceryList[ingredientSlug].quantity || 0) +
-              (ingredient.quantity || 0);
+              (ingredient?.quantity || 0);
           }
         } else {
           groceryList[ingredientSlug] = {
-            name: ingredient.name,
-            quantity: ingredient.quantity,
-            units: ingredient.units,
+            name: groceryMap[ingredientSlug],
+            quantity: ingredient?.quantity,
+            units: ingredient?.units,
             checked: false,
           };
         }
