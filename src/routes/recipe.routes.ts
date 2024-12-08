@@ -34,12 +34,12 @@ recipeRouter.get("/:id", async (req: Request, res: Response) => {
 recipeRouter.post("/generate", async (req: Request, res: Response) => {
   try {
     const { title } = req.body;
-    const { ingredients } = await RecipeController.generateIngredientsList(
-      title
-    );
+    const ingredients = await RecipeController.generateIngredientsList(title);
+
+    console.log({ ingredients });
 
     const recipe = await RecipeModel.create({
-      title,
+      title: capitalize(title),
       ingredients: ingredients.reduce((acc: any, ingredient: any) => {
         acc[slugify(ingredient.name)] = {
           name: capitalize(ingredient.name),
